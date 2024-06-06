@@ -12,14 +12,10 @@ const App = () => {
 
   const { DragSelection } = useSelectionContainer({
     onSelectionChange: (box) => {
-      /**
-       * Here we make sure to adjust the box's left and top with the scroll position of the window
-       * @see https://github.com/AirLabsTeam/react-drag-to-select/#scrolling
-       */
       const scrollAwareBox: Box = {
         ...box,
         top: box.top + window.scrollY,
-        left: box.left + window.scrollX
+        left: box.left + window.scrollX,
       };
 
       setSelectionBox(scrollAwareBox);
@@ -51,7 +47,43 @@ const App = () => {
         });
       });
     }
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/extractTables', {
+          method: 'POST'
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const results = await response.json();
+        console.log(results);
+      } catch (error) {
+        console.error("Error fetching tables:", error);
+      }
+    };
+
+    fetchData();
   }, []);
+
+  const sendData = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/sendData', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(selectionBox)
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const result = await response.json();
+      console.log(result);
+    } catch (error) {
+      console.error("Error sending data:", error);
+    }
+  };
 
   return (
     <div className="container">
@@ -63,9 +95,9 @@ const App = () => {
         <div>width: {selectionBox?.width || ""}</div>
         <div>height: {selectionBox?.height || ""}</div>
       </div>
+      <button onClick={sendData}>Send Data to Server</button>
     </div>
   );
 };
 
 export default App;
-
