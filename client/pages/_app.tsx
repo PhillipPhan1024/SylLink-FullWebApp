@@ -1,53 +1,18 @@
+import 'core-js/features/array/at'; // For Array.prototype.at
+import 'core-js/features/promise/all-settled'; // For Promise.allSettled
+import 'core-js/features/promise/with-resolvers'; // For Promise.withResolvers
+
 import "@/styles/globals.css";
-import { useEffect, useRef, useState } from "react";
-import {
-  Box,
-  useSelectionContainer
-} from "@air/react-drag-to-select";
+import React, { useEffect, useState } from "react";
+import PDFViewer from "../components/PDFViewer";
+import SelectionBoxInfo from "../components/SelectionBoxInfo";
+import DragSelection from "../components/DragSelection";
+import { Box } from "@air/react-drag-to-select";
 
 const App = () => {
   const [selectionBox, setSelectionBox] = useState<Box>();
-  const elementsContainerRef = useRef<HTMLDivElement | null>(null);
-  const selectableItems = useRef<Box[]>([]);
-
-  const { DragSelection } = useSelectionContainer({
-    onSelectionChange: (box) => {
-      const scrollAwareBox: Box = {
-        ...box,
-        top: box.top + window.scrollY,
-        left: box.left + window.scrollX,
-      };
-
-      setSelectionBox(scrollAwareBox);
-    },
-    onSelectionStart: () => {
-      console.log("OnSelectionStart");
-    },
-    onSelectionEnd: () => console.log("OnSelectionEnd"),
-    selectionProps: {
-      style: {
-        border: "2px dashed purple",
-        borderRadius: 4,
-        backgroundColor: "red",
-        opacity: 0.5
-      }
-    },
-    isEnabled: true
-  });
 
   useEffect(() => {
-    if (elementsContainerRef.current) {
-      Array.from(elementsContainerRef.current.children).forEach((item) => {
-        const { left, top, width, height } = item.getBoundingClientRect();
-        selectableItems.current.push({
-          left,
-          top,
-          width,
-          height
-        });
-      });
-    }
-
     const fetchData = async () => {
       try {
         const response = await fetch('http://localhost:8080/api/extractTables', {
@@ -87,14 +52,9 @@ const App = () => {
 
   return (
     <div className="container">
-      <DragSelection />
-      <div className="selection-box-info">
-        Selection Box:
-        <div>top: {selectionBox?.top || ""}</div>
-        <div>left: {selectionBox?.left || ""}</div>
-        <div>width: {selectionBox?.width || ""}</div>
-        <div>height: {selectionBox?.height || ""}</div>
-      </div>
+      <PDFViewer file="Test_Syllabus.pdf" />
+      <DragSelection setSelectionBox={setSelectionBox} />
+      <SelectionBoxInfo selectionBox={selectionBox} />
       <button onClick={sendData}>Send Data to Server</button>
     </div>
   );

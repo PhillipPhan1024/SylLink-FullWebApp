@@ -13,9 +13,8 @@ app.post("/api/extractTables", async (req, res) => {
   try {
     const { left, top, right, bottom } = req.body;
 
-    const results = await extractTables("/Users/phil/vscode/SylLink-FullWebApp/Test_Syllabus.pdf", {
+    const results = await extractTables("/Users/phil/vscode/SylLink-FullWebApp/client/public/Test_Syllabus.pdf", {
       pages: "3",
-      guess: true,
       area: `${top},${left},${bottom},${right}` 
     });
 
