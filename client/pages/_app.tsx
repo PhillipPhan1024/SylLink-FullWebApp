@@ -12,25 +12,6 @@ import { Box } from "@air/react-drag-to-select";
 const App = () => {
   const [selectionBox, setSelectionBox] = useState<Box>();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/api/extractTables', {
-          method: 'POST'
-        });
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const results = await response.json();
-        console.log(results);
-      } catch (error) {
-        console.error("Error fetching tables:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   const sendData = async () => {
     try {
       const response = await fetch('http://localhost:8080/api/sendData', {
