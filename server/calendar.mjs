@@ -58,4 +58,21 @@ async function listEvents(auth) {
   return res.data.items;
 }
 
-export { authorize, listEvents };
+async function createCalendar(auth, summary) {
+  const calendar = google.calendar({ version: "v3", auth });
+  const res = await calendar.calendars.insert({
+    requestBody: {
+      summary,
+    },
+  });
+  return res.data;
+}
+
+async function checkIfCalendarExists(auth, summary) {
+  const calendar = google.calendar({ version: "v3", auth });
+  const res = await calendar.calendarList.list();
+  const calendars = res.data.items;
+  return calendars.some((calendar) => calendar.summary === summary);
+}
+
+export { authorize, listEvents, createCalendar, checkIfCalendarExists };

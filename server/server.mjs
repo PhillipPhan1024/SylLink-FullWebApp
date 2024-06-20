@@ -1,10 +1,14 @@
-// server.mjs
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { extractTables } from "@krakz999/tabula-node";
 import fetch from "node-fetch";
-import { authorize, listEvents } from "./calendar.mjs"; // Import calendar functions
+import {
+  authorize,
+  listEvents,
+  createCalendar,
+  checkIfCalendarExists,
+} from "./calendar.mjs";
 
 const app = express();
 const PORT = 8080;
@@ -86,6 +90,30 @@ app.get("/api/calendarEvents", async (req, res) => {
   } catch (error) {
     console.error("Error fetching calendar events:", error);
     res.status(500).json({ error: "Failed to fetch calendar events" });
+  }
+});
+
+app.post("/api/createCalendar", async (req, res) => {
+  try {
+    const { summary } = req.body;
+    const auth = await authorize();
+
+    const calendarExists = await checkIfCalendarExists(auth, summary);
+    if (calendarExists) {
+      return res
+        .status(400)
+        .json({ error: "Calendar with this summary already exists" });
+    }
+
+    const calendar = await createCalendar(auth, summary);
+
+    res.status(201).json({
+      message: "Calendar created successfully",
+      calendar,
+    });
+  } catch (error) {
+    console.error("Error creating calendar:", error);
+    res.status(500).json({ error: "Failed to create calendar" });
   }
 });
 
