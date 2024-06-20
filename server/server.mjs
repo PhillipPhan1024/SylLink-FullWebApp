@@ -1,8 +1,11 @@
+// server.mjs
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import { extractTables } from '@krakz999/tabula-node';
-import fetch from "node-fetch"; // Use import instead of require
+import { extractTables } from "@krakz999/tabula-node";
+import fetch from "node-fetch";
+import { authorize, listEvents } from "./calendar.mjs"; // Import calendar functions
+
 const app = express();
 const PORT = 8080;
 
@@ -13,15 +16,18 @@ app.post("/api/extractTables", async (req, res) => {
   try {
     const { left, top, right, bottom } = req.body;
 
-    const results = await extractTables("/Users/phil/vscode/SylLink-FullWebApp/client/public/Test_Syllabus.pdf", {
-      pages: "3",
-      area: `${top},${left},${bottom},${right}` 
-    });
+    const results = await extractTables(
+      "/Users/phil/vscode/SylLink-FullWebApp/client/public/Test_Syllabus.pdf",
+      {
+        pages: "3",
+        area: `${top},${left},${bottom},${right}`,
+      }
+    );
 
     res.status(200).json(results);
   } catch (error) {
     console.error("Error extracting tables:", error);
-    res.status(500).json({ error: 'Failed to extract tables' });
+    res.status(500).json({ error: "Failed to extract tables" });
   }
 });
 
@@ -37,22 +43,21 @@ app.post("/api/sendData", async (req, res) => {
       width,
       height,
       right,
-      bottom
+      bottom,
     };
 
     console.log("Received data:", newData);
 
-    // Forward the data to /api/extractTables
-    const response = await fetch('http://localhost:8080/api/extractTables', {
-      method: 'POST',
+    const response = await fetch("http://localhost:8080/api/extractTables", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(newData),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to extract tables');
+      throw new Error("Failed to extract tables");
     }
 
     const extractionResults = await response.json();
@@ -60,11 +65,27 @@ app.post("/api/sendData", async (req, res) => {
     res.status(200).json({
       message: "Data received and tables extracted successfully",
       data: newData,
-      extractionResults
+      extractionResults,
     });
   } catch (error) {
     console.error("Error receiving or forwarding data:", error);
-    res.status(500).json({ error: 'Failed to receive or forward data' });
+    res.status(500).json({ error: "Failed to receive or forward data" });
+  }
+});
+
+app.get("/api/calendarEvents", async (req, res) => {
+  try {
+    const auth = await authorize();
+    const events = await listEvents(auth);
+
+    if (!events || events.length === 0) {
+      res.status(200).json({ message: "No upcoming events found." });
+    } else {
+      res.status(200).json(events);
+    }
+  } catch (error) {
+    console.error("Error fetching calendar events:", error);
+    res.status(500).json({ error: "Failed to fetch calendar events" });
   }
 });
 

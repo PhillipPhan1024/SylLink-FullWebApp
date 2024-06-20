@@ -5,3 +5,38 @@
 .container {
     min-height: 100vh;
 }
+
+.button-layout {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.button-blue {
+  background-color: #3490dc; /* Tailwind's blue-500 */
+}
+
+.button-blue:disabled {
+  background-color: #93c5fd; /* Tailwind's blue-300 */
+}
+
+.button-blue:hover:not(:disabled) {
+  background-color: #2779bd; /* Tailwind's blue-600 */
+}
+
+.button-green {
+  background-color: #38a169; /* Tailwind's green-500 */
+}
+
+.button-green:hover {
+  background-color: #2f855a; /* Tailwind's green-600 */
+}
+

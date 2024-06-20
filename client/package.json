@@ -10,12 +10,17 @@
   },
   "dependencies": {
     "@air/react-drag-to-select": "^5.0.8",
+    "@google-cloud/local-auth": "^2.1.0",
+    "@types/react-router": "^5.1.20",
+    "@types/react-router-dom": "^5.3.3",
     "core-js": "^3.37.1",
+    "googleapis": "^105.0.0",
     "next": "14.2.3",
     "pdfjs-dist": "^4.3.136",
     "react": "^18",
-    "react-dom": "^18",
-    "react-pdf": "^9.0.0"
+    "react-dom": "^18.3.1",
+    "react-pdf": "^9.0.0",
+    "react-router-dom": "^6.23.1"
   },
   "devDependencies": {
     "@types/node": "^20",

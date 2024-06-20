@@ -2,43 +2,12 @@ import 'core-js/features/array/at'; // For Array.prototype.at
 import 'core-js/features/promise/all-settled'; // For Promise.allSettled
 import 'core-js/features/promise/with-resolvers'; // For Promise.withResolvers
 
-import "@/styles/globals.css";
-import React, { useEffect, useState } from "react";
-import PDFViewer from "../components/PDFViewer";
-import SelectionBoxInfo from "../components/SelectionBoxInfo";
-import DragSelection from "../components/DragSelection";
-import { Box } from "@air/react-drag-to-select";
+import '../styles/globals.css'
+import type { AppProps } from 'next/app'
 
-const App = () => {
-  const [selectionBox, setSelectionBox] = useState<Box>();
+function MyApp({ Component, pageProps }: AppProps) {
+  return <Component {...pageProps} />
+}
 
-  const sendData = async () => {
-    try {
-      const response = await fetch('http://localhost:8080/api/sendData', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(selectionBox)
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const result = await response.json();
-      console.log(result);
-    } catch (error) {
-      console.error("Error sending data:", error);
-    }
-  };
+export default MyApp
 
-  return (
-    <div className="container">
-      <PDFViewer file="Test_Syllabus.pdf" />
-      <DragSelection setSelectionBox={setSelectionBox} />
-      <SelectionBoxInfo selectionBox={selectionBox} />
-      <button onClick={sendData}>Send Data to Server</button>
-    </div>
-  );
-};
-
-export default App;

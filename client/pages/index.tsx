@@ -1,34 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React from "react";
+import Link from "next/link";
 
-function index() {
-
-  const [message, setMessage] = useState("Loading")
-  const [people, setPeople] = useState([]);
-
-  useEffect(() => {
-    fetch("http://localhost:8080/api/home").then(
-      response => response.json()
-    ).then (
-      data => {
-        console.log(data)
-        setMessage(data.message)
-        setPeople(data.people)
-      }
-    )
-  }, [])
-
-  return (
-    <div>
-      <div>{message}</div>
-      {
-        people.map((person, index) => (
-          <div key={index}>
-            {person}
-          </div>
-        ))
-      }
-    </div>
-  )
+export default function Home() {
+    return (
+      <main>
+        <h1>Home</h1>
+        <li>
+          <Link href="/SyllabusPage">View your Syllabus</Link>
+        </li>
+        <li>
+          <Link href="/calendar-events">Calendar</Link>
+        </li>
+      </main>
+    );
 }
-
-export default index

@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
+import React, { useState } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+import "react-pdf/dist/esm/Page/TextLayer.css";
+import Button from "./Button";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-const PDFViewer = ({ file }: { file: string }) => {
+interface PDFViewerProps {
+  file: string;
+  children?: React.ReactNode;
+}
+
+
+const PDFViewer: React.FC<PDFViewerProps> = ({ file, children }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
 
@@ -31,17 +38,31 @@ const PDFViewer = ({ file }: { file: string }) => {
   };
 
   return (
-    <div className="pdf-viewer">
-      <div className="pdf-document">
+    <div className="pdf-viewer flex flex-row">
+      <div className="pdf-container"> 
         <Document file={file} onLoadSuccess={onDocumentLoadSuccess}>
           <Page pageNumber={pageNumber} scale={1} />
         </Document>
       </div>
-      <div className="pdf-controls">
-        <button onClick={goToPreviousPage} disabled={pageNumber <= 1}>Previous</button>
-        <button onClick={goToNextPage} disabled={pageNumber >= numPages}>Next</button>
-        <span>Page {pageNumber} of {numPages}</span>
-        <button onClick={downloadPdf}>Download</button>
+      <div className="pdf-controls flex flex-col justify-center ml-4 space-y-2">
+        <Button
+          color="blue"
+          onClick={goToPreviousPage}
+          disabled={pageNumber <= 1}
+        >
+          Previous
+        </Button>
+        <Button
+          color="blue"
+          onClick={goToNextPage}
+          disabled={pageNumber >= numPages}
+        >
+          Next
+        </Button>
+        <span className="px-4 py-2">
+          Page {pageNumber} of {numPages}
+        </span>
+        {children}
       </div>
     </div>
   );
