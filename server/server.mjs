@@ -3,12 +3,21 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import { extractTables } from "@krakz999/tabula-node";
 import fetch from "node-fetch";
+import path from "path";
 import {
   authorize,
   listEvents,
   createCalendar,
   checkIfCalendarExists,
-} from "./calendar.mjs";
+} from "./calendar.js";
+import { google } from "googleapis";
+import OpenAI from "openai";
+
+const openai = new OpenAI(
+  {
+    apiKey: process.env.OPENAI_API_KEY,
+  }
+);
 
 const app = express();
 const PORT = 8080;
@@ -21,7 +30,7 @@ app.post("/api/extractTables", async (req, res) => {
     const { left, top, right, bottom } = req.body;
 
     const results = await extractTables(
-      "/Users/phil/vscode/SylLink-FullWebApp/client/public/Test_Syllabus.pdf",
+      path.resolve(__dirname, "../client/public/Test_Syllabus.pdf"),
       {
         pages: "3",
         area: `${top},${left},${bottom},${right}`,
@@ -32,6 +41,30 @@ app.post("/api/extractTables", async (req, res) => {
   } catch (error) {
     console.error("Error extracting tables:", error);
     res.status(500).json({ error: "Failed to extract tables" });
+  }
+});
+
+app.post("/api/formatData", async (req, res) => {
+  try {
+    const { data } = req.body;
+
+    const prompt = `Format the following data for calendar events: ${data}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      prompt: prompt,
+      max_tokens: 150,
+      n: 1,
+      stop: null,
+      temperature: 0.7,
+    });
+
+    const formattedData = response.choices[0].text.trim();
+
+    res.status(200).json({ formattedData });
+  } catch (error) {
+    console.error("Error formatting data:", error);
+    res.status(500).json({ error: "Error generating response from OpenAI" });
   }
 });
 
@@ -66,10 +99,25 @@ app.post("/api/sendData", async (req, res) => {
 
     const extractionResults = await response.json();
 
+    const openAIResponse = await fetch("http://localhost:8080/api/formatData", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ data: extractionResults }),
+    });
+
+    if (!openAIResponse.ok) {
+      throw new Error("Failed to format data");
+    }
+
+    const { formattedData } = await openAIResponse.json();
+
     res.status(200).json({
       message: "Data received and tables extracted successfully",
       data: newData,
       extractionResults,
+      formattedData,
     });
   } catch (error) {
     console.error("Error receiving or forwarding data:", error);
@@ -90,6 +138,18 @@ app.get("/api/calendarEvents", async (req, res) => {
   } catch (error) {
     console.error("Error fetching calendar events:", error);
     res.status(500).json({ error: "Failed to fetch calendar events" });
+  }
+});
+
+app.get("/api/calendarList", async (req, res) => {
+  try {
+    const auth = await authorize();
+    const calendar = google.calendar({ version: "v3", auth });
+    const response = await calendar.calendarList.list();
+    res.status(200).json(response.data.items);
+  } catch (error) {
+    console.error("Error fetching calendar list:", error);
+    res.status(500).json({ error: "Failed to fetch calendar list" });
   }
 });
 
@@ -114,6 +174,38 @@ app.post("/api/createCalendar", async (req, res) => {
   } catch (error) {
     console.error("Error creating calendar:", error);
     res.status(500).json({ error: "Failed to create calendar" });
+  }
+});
+
+app.post("/api/createCalendarEvents", async (req, res) => {
+  try {
+    const { calendarId, events } = req.body;
+    const auth = await authorize();
+
+    const calendar = google.calendar({ version: "v3", auth });
+    for (const event of events) {
+      const { Quiz, Topics, Textbook, Date } = event;
+      await calendar.events.insert({
+        calendarId,
+        requestBody: {
+          summary: Quiz,
+          description: `${Topics}\nTextbook Sections: ${Textbook}`,
+          start: {
+            date: Date,
+          },
+          end: {
+            date: Date,
+          },
+        },
+      });
+    }
+
+    res.status(201).json({
+      message: "Events created successfully",
+    });
+  } catch (error) {
+    console.error("Error creating calendar events:", error);
+    res.status(500).json({ error: "Failed to create calendar events" });
   }
 });
 

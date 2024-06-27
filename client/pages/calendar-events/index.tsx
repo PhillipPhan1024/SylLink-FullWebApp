@@ -15,7 +15,7 @@ const CalendarEvents: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:8080/api/calendarEvents");
+      const response = await fetch("http://localhost:3000/api/calendarEvents");
       if (!response.ok) {
         throw new Error("Failed to fetch calendar events");
       }
